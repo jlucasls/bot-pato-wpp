@@ -1,0 +1,5 @@
+2026/05/05-13:29:41.419 1930 Creating DB C:\Users\021.885219\Downloads\bot-pato-wpp\.wwebjs_auth\session\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/05/05-13:29:41.510 1930 Reusing MANIFEST C:\Users\021.885219\Downloads\bot-pato-wpp\.wwebjs_auth\session\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/05/05-13:29:43.978 3db8 Level-0 table #5: started
+2026/05/05-13:29:44.001 3db8 Level-0 table #5: 682137 bytes OK
+2026/05/05-13:29:44.005 3db8 Delete type=0 #3
