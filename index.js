@@ -9,5 +9,5 @@ app.use("/", routes);
 const PORT = 5000;
 
 app.listen(PORT, () => {
-    console.log(`Bot rodando na porta ${PORT}`);
-})
+    console.log(`🤖 BOT LIGADO 🤖\nRodando na porta: 5000`);
+});
