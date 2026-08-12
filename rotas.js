@@ -1,34 +1,40 @@
-const{getPatoNews} = require("./services/PatoNews");
-const{getPatoTv} = require("./services/PatoTv");
-const{getSite} = require("./services/Site");
-
+const { getMenu } = require("./messages/menu.messages");
+const{ getPatoNews } = require("./messages/patoNews.messages");
+const{ getPatoTv } = require("./messages/patoTv.messages");
+const{ getSite } = require("./messages/site.messages");
 
 const express = require("express");
 const router = express.Router();
 
-const { getMenu } = require("./services/menu");
+// Opções de mensagens
+const MENSAGENS = {
+  "oi": (user) => getMenu(user),
+  "menu": (user) => getMenu(user),
+  "1": getPatoNews(),
+  "2": getPatoTv,
+  "3": getSite()
+}
 
 router.post("/mensagem", (req, res) => {
-  const mensagem = req.body.mensagem.toLowerCase();
-
+  
+  const msg = req.body.mensagem.toLowerCase();
   let resposta;
+  
+  let user;
 
-  if (mensagem === "oi" || mensagem === "menu") {
-    resposta = getMenu();
-  }else if(mensagem === "1"){
-    resposta = getPatoNews();
-  } 
-  else if(mensagem === "2"){
-    resposta = getPatoTv();
-  }
-  else if(mensagem === "3"){
-    resposta = getSite();
-  }
-  else {
+  if (MENSAGENS.hasOwn(msg)) {
+    resposta = MENSAGENS[msg];
+
+    if (typeof resposta === "function") {
+      resposta = resposta(user);
+    }
+
+  } else {
     resposta = "Não entendi 🤔. Digite 'menu' para ver opções.";
   }
 
   res.json({ resposta });
+
 });
 
 module.exports = router;
