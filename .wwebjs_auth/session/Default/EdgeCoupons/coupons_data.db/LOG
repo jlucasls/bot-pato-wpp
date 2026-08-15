@@ -1,6 +1,0 @@
-2026/08/12-20:29:44.226 1690 Reusing MANIFEST C:\Users\Guilherme Oliver\Documents\VisualStudio\bot-pato-wpp\bot-pato-wpp\.wwebjs_auth\session\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
-2026/08/12-20:29:44.227 1690 Recovering log #4
-2026/08/12-20:29:44.227 1690 Reusing old log C:\Users\Guilherme Oliver\Documents\VisualStudio\bot-pato-wpp\bot-pato-wpp\.wwebjs_auth\session\Default\EdgeCoupons/coupons_data.db/000004.log 
-2026/08/12-20:29:44.532 3ec8 Level-0 table #8: started
-2026/08/12-20:29:44.534 3ec8 Level-0 table #8: 683376 bytes OK
-2026/08/12-20:29:44.535 3ec8 Delete type=0 #4
