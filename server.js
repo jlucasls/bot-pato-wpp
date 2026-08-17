@@ -1,7 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode-terminal");
+const qrcode = require("qrcode");
 const logger = require("./utils/logger.utils");
 const { deleteFolder } = require("./utils/deleteFolder.utils");
 const { MENSAGENS } = require("./routes/mensagens.routes");
@@ -11,6 +11,7 @@ const { getPatoNews } = require("./messages/patoNews.messages");
 const { getPatoTv } = require("./messages/patoTv.messages");
 const { getSite } = require("./messages/site.messages");
 const { getSair } = require("./messages/sair.messages");
+
 dotenv.config();
 const app = express();
 app.use(express.json());
@@ -28,20 +29,35 @@ const client = new Client({
     }
 });
 
-const lidsPermitidos = ["31160021344467", "182549078892659", "257676630044715"];
-
+// Inicialmente para teste e também para ativar a opção de desligar o
+// BOT e reinicializar os serviços apenas para usuários permitidos.
+const lidsPermitidos = ["123781729280243", "31160021344467", "182549078892659", "257676630044715"];
 const usuariosAtivos = new Set();
+let clientPronto = false;
+let qrCodeString;
 
 client.on("qr", (qr) => {
-    logger.info("Escaneie o QR Code: ");
-    qrcode.generate(qr, { small: true });
+    logger.info("Gerando QR Code...");
+    try {
+        qrCodeString=qr;
+        logger.success("QR Code gerado com sucesso.");
+    } catch (err) {
+        logger.error("Erro ao gerar QR Code.", err.message);
+    }
 });
 
 client.on("ready", () => {
-    logger.success("WhatsApp conectado!");
+    clientPronto = true;
+    logger.success("WhatsApp conectado.");
+});
+
+client.on("disconnected", () => {
+    clientPronto = false;
+    logger.warn("WhatsApp desconectado.");
 });
 
 client.on("message", async (message) => {
+    if(!clientPronto) return;
     try {
         if (message.fromMe) return;
         if (message.from.includes("@g.us")) return;
@@ -84,7 +100,7 @@ client.on("message", async (message) => {
                     } catch (err) {
                         logger.error("Erro durante o processo de limpeza:", err.message);
                     }
-                    logger.success("Bot desligado com sucesso!");
+                    logger.warn("Bot desligado com sucesso!");
                     process.exit();
                     return;
                 }
@@ -113,11 +129,30 @@ client.on("message", async (message) => {
 
 client.initialize();
 
-// Iniciando ROTA para utilização do WebHook de integração com o N8N
+app.get('/', async (req, res) => {
+    if (!qrCodeString) {
+        return res.send(`
+            <h1>QR Code ainda não disponível.</h1>
+            <p>Aguarde o WhatsApp inicializar.</p>
+        `);
+    }
+    const qrImage = await qrcode.toDataURL(qrCodeString);
+    return res.send(`
+        <div>
+            <h1>Escaneie o QR Code:</h1>
+            <img src="${qrImage}" />
+        </div>
+    `);
+});
+
 app.post('/send-message', async (req, res) => {
     const {tel, message} = req.body;
     if(!tel || !message){
         return res.status(400).json({ error: 'Telefone e Mensagem são obrigatórios.' });
+    }
+    if(!clientPronto){
+        logger.error("Client não foi inicializado.")
+        return res.status(500).json({ error:"Client não foi inicializado." });
     }
     try{
         const numeroFormatado = tel.replace(/\D/g, '');
@@ -132,6 +167,29 @@ app.post('/send-message', async (req, res) => {
         logger.error('Erro ao enviar mensagem:', err.message);
         return res.status(500).json({ err: 'Falha interna ao enviar mensagem.' });
     }
+});
+
+app.post('/turn-bot-off', async (req, res) => {
+    const { tel } = req.body;
+    if(!tel){
+        return res.status(400).json({ error: 'Telefone é obrigatório.' });
+    }
+    if(!clientPronto){
+        logger.error("Client não foi inicializado.")
+        return res.status(500).json({ error:"Client não foi inicializado." });
+    }
+    try{
+        const numeroFormatado = tel.replace(/\D/g, '');
+        const chatId = `${numeroFormatado}@c.us`;
+        const detalhesNumero = await client.getNumberId(numeroFormatado);
+        if(!detalhesNumero){
+            return res.status(404).json({ error: 'Número não cadastrado no WhatsApp.' });
+        }
+        return logger.info(detalhesNumero.user);
+    }catch(err){
+        logger.error('Erro ao desligar bot:', err.message);
+        return res.status(500).json({ err: 'Erro ao desligar bot.' });
+    };
 });
 
 app.listen(process.env.PORT, () => {
