@@ -28,7 +28,7 @@ const client = new Client({
     }
 });
 
-const lidsPermitidos = ["31160021344467", "182549078892659", "257676630044715"];
+const lidsPermitidos = ["", "31160021344467", "182549078892659", "257676630044715"];
 
 const usuariosAtivos = new Set();
 
@@ -99,7 +99,7 @@ client.on("message", async (message) => {
             }
         }
         await message.reply(resposta, undefined, {
-            mentions: [`${user.id.user}@c.us`]
+            mentions: [`${user.id.user}@c.us`],
         });
     } catch (err) {
         logger.error("Erro interno no processamento/envio da mensagem. ERROR: " + err.message);
@@ -113,27 +113,38 @@ client.on("message", async (message) => {
 
 client.initialize();
 
-// Iniciando ROTA para utilização do WebHook de integração com o N8N
 app.post('/send-message', async (req, res) => {
-    const {tel, message} = req.body;
-    if(!tel || !message){
-        return res.status(400).json({ error: 'Telefone e Mensagem são obrigatórios.' });
+    const { telefone, nome } = req.body;
+    if(!telefone){
+        return res.status(400).json({ error: 'Telefone é obrigatório.' });
     }
     try{
-        const numeroFormatado = tel.replace(/\D/g, '');
-        const chatId = `${numeroFormatado}@c.us`;
-        const detalhesNumero = await client.getNumberId(numeroFormatado);
+        const telefoneFormatado = telefone.replace(/\D/g, '');
+
+        const detalhesNumero = await client.getNumberId(`${telefoneFormatado}@c.us`);
+
         if(!detalhesNumero){
-            return res.status(404).json({ error: 'Número não cadastrado no WhatsApp.' })
+            return res.status(404).json({ 
+                error: 'Número não cadastrado no WhatsApp.' 
+            });
         }
-        await client.sendMessage(detalhesNumero._serialized, message);
+
+        const user = await client.getContactById(detalhesNumero._serialized);
+
+        const message = `Olá @${user.id.user}! Teste funcionando com sucesso.`;
+
+        await client.sendMessage(user.id._serialized, message, { 
+            mentions: [`${user.id.user}@c.us`],
+        });
+
+        logger.success('Mensagem enviada com sucesso!');
         return res.status(200).json({ success: true, message: 'Mensagem enviada com sucesso!' });
     }catch(err){
-        logger.error('Erro ao enviar mensagem:', err.message);
+        logger.error('Erro ao enviar mensagem:', err);
         return res.status(500).json({ err: 'Falha interna ao enviar mensagem.' });
     }
 });
 
 app.listen(process.env.PORT, () => {
-    logger.info("Server running in http://localhost:3000");
+    logger.info(`Server running in http://localhost:${process.env.PORT}`);
 });
