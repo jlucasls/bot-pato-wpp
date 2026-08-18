@@ -3,6 +3,8 @@ const router = express.Router();
 const logger = require("../utils/logger.utils");
 const client = require(".././whatsapp/client");
 const { isClientPronto } = require(".././whatsapp/clientState");
+const { getBemVindo } = require("../messages/bemVindo.messages");
+const { getFormsMessage } = require("../messages/formsMessage.message")
 
 router.post('/send-message', async (req, res) => {
     const { telefone, nome } = req.body;
@@ -26,7 +28,7 @@ router.post('/send-message', async (req, res) => {
 
         const user = await client.getContactById(detalhesNumero._serialized);
 
-        const message = `Olá @${user.id.user}! Teste funcionando com sucesso.`;
+        const message = getFormsMessage(user.id.user);
 
         await client.sendMessage(user.id._serialized, message, { 
             mentions: [`${user.id.user}@c.us`],
@@ -35,7 +37,7 @@ router.post('/send-message', async (req, res) => {
         logger.success('Mensagem enviada com sucesso!');
         return res.status(200).json({ success: true, message: 'Mensagem enviada com sucesso!' });
     }catch(err){
-        logger.error('Erro ao enviar mensagem:', err);
+        logger.error('Erro ao enviar mensagem:', err.message);
         return res.status(500).json({ err: 'Falha interna ao enviar mensagem.' });
     }
 });

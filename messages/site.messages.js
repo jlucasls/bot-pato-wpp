@@ -1,17 +1,24 @@
 function getSite() {
-  return `
-🌐 *Site do Clube*
+  return `━━━━━━━━━━━━━━━━
 
-Acesse nossa plataforma e saiba mais sobre nós:
+🌐 *SITE DO CLUBE*
 
+🦆 *Tudo em um só lugar!*
+
+Acesse nossa plataforma e conheça mais sobre o clube, além de aproveitar nossas ferramentas:
+
+🧮 *Passei SENAI*
+Calcule sua média de forma rápida e fácil.
+
+📊 *Calculadora de Faltas*
+Descubra quantas faltas você ainda pode ter.
+
+🚀 *Acesse agora:*
 👉 https://clube-de-programacao.vercel.app/
 
-Ferramentas:
-- Passei SENAI -> calcule sua média
-- Calculadora de faltas -> descubra quantas faltas ainda pode ter
-
-_Digite *menu* para voltar ou *sair* para encerrar._
-  `;
+━━━━━━━━━━━━━━━━
+💬 _Digite *Voltar* para voltar ou *Sair* para encerrar_
+`;
 }
 
 module.exports = { getSite };
