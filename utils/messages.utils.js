@@ -2,6 +2,7 @@ const { getBemVindo } = require("../messages/bemVindo.messages");
 const { getMenu } = require("../messages/menu.messages");
 const { getPatoNews } = require("../messages/patoNews.messages");
 const { getPatoTv } = require("../messages/patoTv.messages");
+const { getSair } = require("../messages/sair.messages");
 const { getSite } = require("../messages/site.messages");
 
 const MENSAGENS = {
@@ -10,7 +11,7 @@ const MENSAGENS = {
     "1": () => getPatoNews(),
     "2": () => getPatoTv(),
     "3": () => getSite(),
-    "desligar": ""
+    "sair": (userId) => getSair(userId),
 };
 
 module.exports = { MENSAGENS };

@@ -1,37 +1,26 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode");
-const logger = require("./utils/logger.utils");
-const { deleteFolder } = require("./utils/deleteFolder.utils");
-const { MENSAGENS } = require("./routes/mensagens.routes");
 const { getBemVindo } = require("./messages/bemVindo.messages");
 const { getMenu } = require("./messages/menu.messages");
 const { getPatoNews } = require("./messages/patoNews.messages");
 const { getPatoTv } = require("./messages/patoTv.messages");
 const { getSite } = require("./messages/site.messages");
 const { getSair } = require("./messages/sair.messages");
+const { MENSAGENS } = require("./utils/messages.utils");
+const { deleteFolder } = require("./utils/deleteFolder.utils");
+const logger = require("./utils/logger.utils");
+const messageRouter = require("./routes/messages.routes");
+const botRouter = require("./routes/bot.routes");
+const client = require("./whatsapp/client");
+const { setClientPronto, isClientPronto } = require("./whatsapp/clientState");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
 
-const client = new Client({
-    authStrategy: new LocalAuth(),
-    puppeteer: {
-        executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-        headless: true,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage"
-        ]
-    }
-});
-
 const lidsPermitidos = ["31160021344467", "182549078892659", "257676630044715"];
 const usuariosAtivos = new Set();
-let clientPronto = false;
 let qrCodeString;
 
 client.on("qr", (qr) => {
@@ -45,17 +34,17 @@ client.on("qr", (qr) => {
 });
 
 client.on("ready", () => {
-    clientPronto = true;
+    setClientPronto(true);
     logger.success("WhatsApp conectado.");
 });
 
 client.on("disconnected", () => {
-    clientPronto = false;
+    setClientPronto(false);
     logger.warn("WhatsApp desconectado.");
 });
 
 client.on("message", async (message) => {
-    if(!clientPronto) return;
+    if(!isClientPronto) return;
     try {
         if (message.fromMe) return;
         if (message.from.includes("@g.us")) return;
@@ -68,7 +57,6 @@ client.on("message", async (message) => {
             await message.reply("🦆 QUACK! Desculpa, estamos enfrentando turbulências em nossos serviços. Tente novamente mais tarde!");
             return;
         }
-        // APENAS TEMPORARIAMENTE
         if (!lidsPermitidos.includes(user.number)) {
             logger.info(`Mensagem bloqueada de: ${user.pushname} (${user.number})`);
             return;
@@ -81,6 +69,7 @@ client.on("message", async (message) => {
         } else {
             if (msg in MENSAGENS) {
                 resposta = MENSAGENS[msg];
+                if(msg === "sair") usuariosAtivos.delete(user.number);
                 if (typeof resposta === "function") {
                     resposta = resposta(user.id.user);
                 }
@@ -104,10 +93,6 @@ client.on("message", async (message) => {
                 }
                 resposta = "Não entendi 🤔. Digite *menu* para ver opções ou *sair* para encerrar a conversa.";
             }
-            else if (msg === "sair") {
-                resposta = getSair(user.id.user);
-                usuariosAtivos.delete(user.number);
-            }
             else {
                 resposta = "Não entendi 🤔. Digite *menu* para ver opções ou *sair* para encerrar a conversa.";
             }
@@ -124,9 +109,7 @@ client.on("message", async (message) => {
         }
     }
 });
-
 client.initialize();
-
 app.get('/', async (req, res) => {
     if (!qrCodeString) {
         return res.send(`
@@ -142,66 +125,9 @@ app.get('/', async (req, res) => {
         </div>
     `);
 });
-
-app.post('/send-message', async (req, res) => {
-    const { telefone, nome } = req.body;
-    if(!telefone){
-        return res.status(400).json({ error: 'Telefone é obrigatório.' });
-    }
-    if(!clientPronto){
-        logger.error("Client não foi inicializado.")
-        return res.status(500).json({ error:"Client não foi inicializado." });
-    }
-    try{
-        const telefoneFormatado = telefone.replace(/\D/g, '');
-
-        const detalhesNumero = await client.getNumberId(`${telefoneFormatado}@c.us`);
-
-        if(!detalhesNumero){
-            return res.status(404).json({ 
-                error: 'Número não cadastrado no WhatsApp.' 
-            });
-        }
-
-        const user = await client.getContactById(detalhesNumero._serialized);
-
-        const message = `Olá @${user.id.user}! Teste funcionando com sucesso.`;
-
-        await client.sendMessage(user.id._serialized, message, { 
-            mentions: [`${user.id.user}@c.us`],
-        });
-
-        logger.success('Mensagem enviada com sucesso!');
-        return res.status(200).json({ success: true, message: 'Mensagem enviada com sucesso!' });
-    }catch(err){
-        logger.error('Erro ao enviar mensagem:', err);
-        return res.status(500).json({ err: 'Falha interna ao enviar mensagem.' });
-    }
-});
-
-app.post('/turn-bot-off', async (req, res) => {
-    const { tel } = req.body;
-    if(!tel){
-        return res.status(400).json({ error: 'Telefone é obrigatório.' });
-    }
-    if(!clientPronto){
-        logger.error("Client não foi inicializado.")
-        return res.status(500).json({ error:"Client não foi inicializado." });
-    }
-    try{
-        const numeroFormatado = tel.replace(/\D/g, '');
-        const chatId = `${numeroFormatado}@c.us`;
-        const detalhesNumero = await client.getNumberId(numeroFormatado);
-        if(!detalhesNumero){
-            return res.status(404).json({ error: 'Número não cadastrado no WhatsApp.' });
-        }
-        return logger.info(detalhesNumero.user);
-    }catch(err){
-        logger.error('Erro ao desligar bot:', err.message);
-        return res.status(500).json({ err: 'Erro ao desligar bot.' });
-    };
-});
-
+app.use('/messages', messageRouter);
+app.use('/bot', botRouter);
 app.listen(process.env.PORT, () => {
     logger.info(`Server running in http://localhost:${process.env.PORT}`);
 });
+
