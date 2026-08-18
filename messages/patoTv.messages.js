@@ -1,13 +1,19 @@
 function getPatoTv() {
-  return `
-📺 *PatoTv*
+  return `━━━━━━━━━━━━━━━━
+  
+📺 *PATOTV*
 
-Confira nosso canal no YouTube!
+🦆 *Conteúdos, novidades e muito mais!*
 
-👉 Acesse: https://youtube.com/@patotv-quack
+🎬 Confira nosso canal no YouTube e acompanhe
+todos os vídeos da PatoTV.
 
-_Digite *menu* para voltar ou *sair* para encerrar._
-  `;
+🚀 *Acesse agora:*
+👉 https://youtube.com/@patotv-quack
+
+━━━━━━━━━━━━━━━━
+💬 _Digite *Voltar* para voltar ou *Sair* para encerrar_
+`;
 }
 
 module.exports = { getPatoTv };

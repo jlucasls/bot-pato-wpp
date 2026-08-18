@@ -1,19 +1,23 @@
 function getPatoNews() {
-    return `
-📢 *Pato News*
+    return `━━━━━━━━━━━━━━━━
+    
+📢 *PATO NEWS*
 
-Nossa comunidade no WhatsApp!
+🦆 *A comunidade oficial do WhatsApp!*
 
-Aqui você encontra:
-- Avisos importantes
-- Eventos
-- Um espaço pra galera trocar ideia
+Fique por dentro de tudo que acontece:
 
-👉 Entrar na comunidade:
+🔔 *Avisos importantes*
+🎉 *Eventos e novidades*
+💬 *Um espaço para a galera trocar ideia*
+
+🚀 *Quer fazer parte?*
+👉 Entre na comunidade:
 https://chat.whatsapp.com/KMe3tc8wW38DVmymqQvoKP
 
-_Digite *menu* para voltar ou *sair* para encerrar._
-    `;
+━━━━━━━━━━━━━━━━
+💬 _Digite *Voltar* para voltar ou *Sair* para encerrar_
+`;
 }
 
 module.exports = {getPatoNews};

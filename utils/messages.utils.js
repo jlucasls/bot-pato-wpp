@@ -11,6 +11,7 @@ const MENSAGENS = {
     "1": () => getPatoNews(),
     "2": () => getPatoTv(),
     "3": () => getSite(),
+    "voltar": (userId) => getMenu(userId),
     "sair": (userId) => getSair(userId),
 };
 

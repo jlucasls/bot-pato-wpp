@@ -1,14 +1,21 @@
 function getMenu(user) {
-  return `
-🦆 QUACK! E aí @${user}, no que te posso ajudar hoje?
+   return `━━━━━━━━━━━━━━━━
+   
+🦆 *QUACK! E aí, @${user}!*
 
-Escolha uma opção digitando o número:
+🎯 *O que você quer fazer hoje?*
 
-1️⃣ - 📢 Pato News
-2️⃣ - 📺 PatoTv
-3️⃣ - 🌐 Site do clube
+1️⃣ 📢 *Pato News*
+   _Fique por dentro das novidades_
 
-_Digite *sair* para encerrar a conversa._
-  `;
+2️⃣ 📺 *PatoTV*
+   _Confira nossos conteúdos_
+
+3️⃣ 🌐 *Site do Clube*
+   _Acesse nosso site oficial_
+
+━━━━━━━━━━━━━━━━
+💬 _Digite *sair* para encerrar._
+`;
 }
 module.exports = { getMenu };
