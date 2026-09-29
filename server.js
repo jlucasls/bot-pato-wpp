@@ -14,22 +14,45 @@ app.use(express.json());
 app.get('/', async (req, res) => {
     const { isPronto, qrCode } = getBotStatus();
 
-    if (isPronto) {
-        return res.send(`<h1>WhatsApp já está conectado!</h1>`);
-    }
+    res.send( `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="shortcut icon" href="./public/images/logo-256.png" type="image/x-icon">
+            <title>Bot | ${!isPronto ? "Entrar" : "Conectado"}</title>
+        </head>
+        <body>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <h1>${!qrCode && !isPronto ? "WhatsApp conectado com sucesso!" : !qrCode ? "QR Code ainda não disponível." : "Escaneie o QR Code:" }</h1>
+                ${!qrCode ? "<p>Se o bot estiver desligado, faça um POST para /bot/start para inicializar.</p>" : `<img src="${qrCode}" alt='QR Code WhatsApp' />` } 
+            </div>
+            
+            <script>
+                // Seleciona os elementos do HTML
+                const botao = document.getElementById('meuBotao');
+                const resultado = document.getElementById('resultado');
 
-    if (!qrCode) {
-        return res.send(`
-            <h1>QR Code ainda não disponível.</h1>
-            <p>Se o bot estiver desligado, faça um POST para /bot/start para inicializar.</p>
-        `);
-    }
-
-    return res.send(`
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif; margin-top:50px;">
-            <h1>Escaneie o QR Code:</h1>
-            <img src="${qrCode}" alt="QR Code WhatsApp" />
-        </div>
+                // Adiciona o evento de clique ao botão
+                botao.addEventListener('click', async () => {
+                    resultado.textContent = 'Carregando...';
+                    
+                    try {
+                        // Faz a requisição para a rota do próprio servidor
+                        const resposta = await fetch('/api/dados');
+                        const dados = await respuesta.json();
+                        
+                        // Atualiza o HTML com a resposta do servidor
+                        resultado.textContent = dados.mensagem;
+                    } catch (erro) {
+                        resultado.textContent = 'Erro ao consultar o servidor.';
+                        console.error(erro);
+                    }
+                });
+            </script>
+        </body>
+        </html>
     `);
 });
 

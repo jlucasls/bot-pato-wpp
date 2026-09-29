@@ -34,6 +34,7 @@ async function startBot() {
             ]
         }
     });
+    
     client.on("qr", async (qr) => {
         try {
             currentQrCode = await qrcode.toDataURL(qr);
