@@ -27,18 +27,14 @@ async function startBot() {
 
     logger.info("Iniciando cliente do WhatsApp...");
 
-    const client = new Client({
+    client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
             headless: true,
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage"
-            ]
+            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
         }
     });
-    
+
     client.on("qr", async (qr) => {
         try {
             currentQrCode = await qrcode.toDataURL(qr);
