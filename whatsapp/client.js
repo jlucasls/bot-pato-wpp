@@ -30,8 +30,14 @@ async function startBot() {
     client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
+            executablePath: "/usr/bin/google-chrome",
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+            args: [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"
+            ]
         }
     });
 
