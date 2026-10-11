@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-const INTERVAL = 60 * 60 * 1000; // Consulta a cada 1 hora
+const INTERVAL = 60 * 60 * 1000;
 const ENDPOINT = process.env.ENDPOINT || "https://localhost:3000/";
 
 app.get('/', async (req, res) => {
@@ -265,12 +265,21 @@ app.get('/', async (req, res) => {
                             ? "<div class='loader large' role='status' aria-label='Loading'></div>"
                             : ""
                         }
+
+                        ${
+                            estado === "qr" && estado != "pronto"
+                                ? `<div id="buttons-section" class="buttons-section">
+                                        <button id="restartBtn" class="btn"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>Reiniciar</span></button>
+                                    </div>`
+                                : ""
+                        }
+
                         ${estado === "pronto" || estado === "desligado"
                             ? `<div id="buttons-section" class="buttons-section">
                                     <button id="startBtn" class="btn" ${estado === "pronto" ? "hidden" : ""}><i class="fa-solid fa-play" aria-hidden="true"></i><span>Iniciar</span></button>
                                     <button id="stopBtn" class="btn" ${estado === "desligado" ? "hidden" : ""}><i class="fa-solid fa-power-off" aria-hidden="true"></i><span>Desligar</span></button>
                                     <button id="restartBtn" class="btn" ${estado === "desligado" ? "hidden" : ""}><i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>Reiniciar</span></button>
-                                    <button id="logoutBtn" class="btn"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Deslogar</span></button>
+                                    <button id="logoutBtn" class="btn" ${estado === "desligado" ? "hidden" : ""}><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Deslogar</span></button>
                                 </div>`
                             : ""
                         }
@@ -292,6 +301,9 @@ app.get('/', async (req, res) => {
                 document.addEventListener("DOMContentLoaded", () => {
                     if("${estado}" === "iniciando"){
                         setInterval(() => { window.location.reload() }, 1000);
+                    }
+                    if("${estado}" === "qr"){
+                        setInterval(() => { window.location.reload() }, 5000);
                     }
                 });
 

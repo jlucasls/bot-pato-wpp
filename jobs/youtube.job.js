@@ -44,7 +44,7 @@ async function verifyNewVideos(){
                     await axios.post(ENDPOINT, {
                         id: videoId,
                         title: video.snippet?.title,
-                        url: `https://youtube.com/watch?v=${videoId}`,
+                        url: `https://www.youtube.com/watch?v=${videoId}`,
                         publishedAt: video.snippet?.publishedAt
                     });
                 }
