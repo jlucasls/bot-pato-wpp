@@ -1,15 +1,15 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const qrcode = require("qrcode");
 const logger = require("./utils/logger.utils");
 const messageRouter = require("./routes/messages.routes");
 const botRouter = require("./routes/bot.routes");
-const client = require("./whatsapp/client");
 const { startBot, getBotStatus } = require("./whatsapp/client");
+const { verifyNewVideos } = require("./jobs/youtube.job");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+const INTERVAL = 60 * 60 * 1000; // Consulta a cada 1 hora
 
 app.get('/', async (req, res) => {
     const { isPronto, qrCode } = getBotStatus();
@@ -35,6 +35,8 @@ app.get('/', async (req, res) => {
 
 app.use('/messages', messageRouter);
 app.use('/bot', botRouter);
+
+setInterval(verifyNewVideos, INTERVAL);
 
 const PORT = process.env.PORT || 3000;
 
