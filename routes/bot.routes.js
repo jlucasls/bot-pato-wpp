@@ -3,6 +3,8 @@ const router = express.Router();
 const logger = require("../utils/logger.utils");
 const { startBot, stopBot, logoutBot, restartBot, getBotStatus } = require("../whatsapp/client");
 
+const ACTION_PASSWORD = process.env.ACTION_PASSWORD || "";
+
 router.post('/start', async (req, res) => {
     try {
         await startBot();
@@ -16,6 +18,19 @@ router.post('/start', async (req, res) => {
 
 router.post('/stop', async (req, res) => {
     try {
+
+        const { password } = req.body;
+
+        if(!password){
+            logger.info("Foi detectada uma tentativa de desligamento do bot. Credencial não pode ser nula.");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
+        if(password != ACTION_PASSWORD) {
+            logger.info("Foi detectada uma tentativa de desligamento do bot. Credencial inválida");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
         await stopBot();
         logger.success("Bot desligado com sucesso.");
         return res.status(200).json({ message: "Bot desligado com sucesso." });
@@ -27,6 +42,19 @@ router.post('/stop', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
+
+        const { password } = req.body;
+
+        if(!password){
+            logger.info("Foi detectada uma tentativa de logout da sessão. Credencial não pode ser nula.");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
+        if(password != ACTION_PASSWORD) {
+            logger.info("Foi detectada uma tentativa de logout da sessão. Credencial inválida");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
         await logoutBot();
         logger.success("Sessão deslogada com sucesso.");
         return res.status(200).json({ message: "Sessão deslogada com sucesso." });
@@ -38,9 +66,23 @@ router.post('/logout', async (req, res) => {
 
 router.post('/restart', async (req, res) => {
     try {
+
+        const { password } = req.body;
+
+        if(!password){
+            logger.info("Foi detectada uma tentativa de reinicialização do bot. Credencial não pode ser nula.");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
+        if(password != ACTION_PASSWORD) {
+            logger.info("Foi detectada uma tentativa de reinicialização do bot. Credencial inválida");
+            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+        }
+
+        logger.info("Reiniciando o bot...");
         await restartBot();
         logger.success("Bot reiniciado com sucesso.");
-        return res.status(200).json({ message: "Reiniciando o bot..." });
+        return res.status(200).json({ message: "Bot reiniciado com sucesso." });
     } catch (err) {
         logger.error("Erro ao reiniciar bot:", err.message);
         return res.status(500).json({ error: "Erro ao reiniciar o bot." });

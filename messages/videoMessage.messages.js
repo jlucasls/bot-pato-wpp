@@ -1,12 +1,17 @@
-function getVideoMessage(id, title, url, publishedAt){
-    return  `
-@all ou @todos
-testando:
-id: ${id}
-title: ${title}
-url: ${url}
-publishedAt: ${publishedAt}
-    `;
+function getVideoMessage(title, url) {
+    return `━━━━━━━━━━━━━━━━
+
+*NOVO VÍDEO NA PATOTV!*
+
+🦆 *QUACK! Saiu vídeo novo, bora assistir!*
+
+*${title}*
+
+📺 Assista em: ${url}
+
+━━━━━━━━━━━━━━━━
+🦆 _Não seja um pato. Vai lá e assiste! 👊_
+`;
 }
 
-module.exports = { getVideoMessage }
+module.exports = { getVideoMessage };

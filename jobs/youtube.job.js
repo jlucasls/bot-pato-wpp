@@ -4,7 +4,7 @@ const logger = require("../utils/logger.utils");
 
 const API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_ID = process.env.CHANNEL_ID;
-const ENDPOINT_POST = process.env.ENDPOINT_POST;
+const ENDPOINT = process.env.ENDPOINT + "/messages/jobs/send-video-message";
 
 const youtube = google.youtube({
     version: 'v3',
@@ -41,7 +41,7 @@ async function verifyNewVideos(){
                 if(!firstExecution){
                     logger.info(`Novo vídeo detectado! Enviado para o grupo...`);
 
-                    await axios.post(ENDPOINT_POST, {
+                    await axios.post(ENDPOINT, {
                         id: videoId,
                         title: video.snippet?.title,
                         url: `https://youtube.com/watch?v=${videoId}`,
