@@ -11,8 +11,13 @@ dotenv.config();
 let client = null;
 let currentQrCode = null;
 const usuariosAtivos = new Set();
-// CONSTANTE ABAIXO É APENAS EM AMBIENTE DE TESTE!!!
+
+// por preocaução eu deixei pra ele nunca deixar mandar mensagem
+// já me ocorreu de ele mandar mensagem pra um monte de gente kkkkkkkk
+// entao pra tirar a limitação é só mudar no .env essa variavel e pronto.
 const lidsPermitidos = process.env.LIDS_PERMITIDOS ? process.env.LIDS_PERMITIDOS.split(";") : [];
+const blockMessages = process.env.BLOCK_MESSAGES || 'true';
+
 
 async function startBot() {
     if (client) {
@@ -73,6 +78,13 @@ async function startBot() {
                 return;
             }
 
+            if(blockMessages === 'true'){
+                if (!lidsPermitidos.includes(user.number)) {
+                    logger.info(`Mensagem bloqueada de: ${user.pushname} (${user.number})`);
+                    return;
+                }
+            }
+
             const msg = message.body.toLowerCase().trim();
             let resposta;
 
@@ -86,14 +98,6 @@ async function startBot() {
                     if (typeof resposta === "function") {
                         resposta = resposta(user.id.user);
                     }
-                } else if (msg === "desligar") {
-                    if (lidsPermitidos.includes(user.number)) {
-                        await message.reply("🛑 Encerrando Bot via comando... 🛑");
-                        logger.info("Iniciando desligamento manual por mensagem...");
-                        await stopBot();
-                        return;
-                    }
-                    resposta = "Não entendi 🤔. Digite *menu* para ver opções ou *sair* para encerrar a conversa.";
                 } else {
                     resposta = "Não entendi 🤔. Digite *menu* para ver opções ou *sair* para encerrar a conversa.";
                 }
@@ -176,11 +180,4 @@ function getClient() {
     return client;
 }
 
-module.exports = {
-    startBot,
-    stopBot,
-    logoutBot,
-    restartBot,
-    getBotStatus,
-    getClient
-};
+module.exports = { startBot, stopBot, logoutBot, restartBot, getBotStatus, getClient };
