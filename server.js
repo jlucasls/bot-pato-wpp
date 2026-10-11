@@ -414,6 +414,6 @@ setInterval(verifyNewVideos, INTERVAL);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
-    logger.info(`Server running in http://localhost:${process.env.PORT}`);
+    logger.info(`Server running in ${process.env.ENDPOINT}`);
     await startBot();
 });
