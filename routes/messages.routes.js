@@ -6,7 +6,7 @@ const { isClientPronto } = require("../whatsapp/clientState");
 const { getFormsMessage } = require("../messages/formsMessage.message");
 const { getVideoMessage } = require("../messages/videoMessage.messages");
 
-const LID_GROUP = process.env.LID_GROUP;
+const LID_GROUP = process.env.LID_GROUP || "";
 
 router.post('/send-message', async (req, res) => {
     const { telefone, nome } = req.body;
@@ -82,10 +82,14 @@ router.post('/jobs/send-video-message', async (req, res) => {
         }
 
         try {
-            const message = getVideoMessage(title, url);
-            await client.sendMessage(LID_GROUP, message, { linkPreview: true });
-            logger.success('Notificação de novo vídeo enviado com sucesso!');
-            return res.status(200).json({ success: true, message: 'Notificação de novo vídeo enviado com sucesso!' });
+            if(LID_GROUP){
+                const message = getVideoMessage(title, url);
+                await client.sendMessage(LID_GROUP, message, { linkPreview: true });
+                logger.success('Notificação de novo vídeo enviado com sucesso!');
+                return res.status(200).json({ success: true, message: 'Notificação de novo vídeo enviado com sucesso!' });
+            }else{
+                throw new Error("ID do grupo não pode ser nulo.");
+            }
         } catch (err) {
             throw new Error(`Erro ao tentar enviar mensagem para o grupo: ${err.message}`);
         }

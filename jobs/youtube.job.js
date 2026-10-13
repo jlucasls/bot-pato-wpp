@@ -2,8 +2,8 @@ const { google } = require("googleapis");
 const axios = require("axios");
 const logger = require("../utils/logger.utils");
 
-const API_KEY = process.env.YOUTUBE_API_KEY;
-const CHANNEL_ID = process.env.CHANNEL_ID;
+const API_KEY = process.env.YOUTUBE_API_KEY || "";
+const CHANNEL_ID = process.env.CHANNEL_ID || "";
 const ENDPOINT = process.env.ENDPOINT + "/messages/jobs/send-video-message";
 
 const youtube = google.youtube({
@@ -19,48 +19,52 @@ async function verifyNewVideos(){
     try {
         logger.info(`Verificando Youtube...`);
 
-        const response = await youtube.search.list({
-            channelId: CHANNEL_ID,
-            part: ['id', 'snippet'],
-            order: 'date',
-            maxResults: 1,
-            type: ['video']
-        });
+        if(CHANNEL_ID){
 
-        const videos = response.data.items || [];
-        const firstExecution = videosConhecidos.size === 0;
-        let temVideo = false;
+            const response = await youtube.search.list({
+                channelId: CHANNEL_ID,
+                part: ['id', 'snippet'],
+                order: 'date',
+                maxResults: 1,
+                type: ['video']
+            });
 
-        for(const video of videos){
-            const videoId = video.id?.videoId;
-            if(!videoId) continue;
+            const videos = response.data.items || [];
+            const firstExecution = videosConhecidos.size === 0;
+            let temVideo = false;
 
-            if(!videosConhecidos.has(videoId)){
-                temVideo = true;
+            for(const video of videos){
+                const videoId = video.id?.videoId;
+                if(!videoId) continue;
 
-                if(!firstExecution){
-                    logger.info(`Novo vídeo detectado! Enviado para o grupo...`);
+                if(!videosConhecidos.has(videoId)){
+                    temVideo = true;
 
-                    await axios.post(ENDPOINT, {
-                        id: videoId,
-                        title: video.snippet?.title,
-                        url: `https://www.youtube.com/watch?v=${videoId}`,
-                        publishedAt: video.snippet?.publishedAt
-                    });
+                    if(!firstExecution){
+                        logger.info(`Novo vídeo detectado! Enviado para o grupo...`);
+
+                        await axios.post(ENDPOINT, {
+                            id: videoId,
+                            title: video.snippet?.title,
+                            url: `https://www.youtube.com/watch?v=${videoId}`,
+                            publishedAt: video.snippet?.publishedAt
+                        });
+                    }
+                    videosConhecidos.add(videoId);
                 }
-                videosConhecidos.add(videoId);
             }
-        }
 
-        if(videosConhecidos.size >= LIMITE_MEMORIA){
-            const arrayIds = Array.from(videosConhecidos);
-            videosConhecidos = new Set(arrayIds.slice(-5));
-        }
+            if(videosConhecidos.size >= LIMITE_MEMORIA){
+                const arrayIds = Array.from(videosConhecidos);
+                videosConhecidos = new Set(arrayIds.slice(-5));
+            }
 
-        if (!temVideo && !firstExecution) {
-            logger.info(`Nenhum vídeo novo encontrado.`);
+            if (!temVideo && !firstExecution) {
+                logger.info(`Nenhum vídeo novo encontrado.`);
+            }
+        }else{
+            throw new Error("ID do canal não pode ser nulo.");
         }
-
     } catch (err) {
         logger.error("Erro ao processar checagem: ", err.message);
     }

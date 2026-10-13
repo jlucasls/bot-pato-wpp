@@ -27,7 +27,7 @@ async function startBot() {
 
     logger.info("Iniciando cliente do WhatsApp...");
 
-    const client = new Client({
+    client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         executablePath: "/usr/bin/chromium",
