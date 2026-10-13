@@ -46,4 +46,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 3000
+ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
 CMD ["node", "server.js"]

@@ -43,12 +43,8 @@ async function startBot() {
                 "--disable-gpu",
                 "--disable-software-rasterizer",
                 "--disable-extensions",
-                "--disable-dev-tools",
-                "--disable-features=AudioServiceOutOfProcess",
-                "--disable-ipc-flooding-protection",
-                "--ozone-platform=headless",
-                "--disable-background-networking",
-                "--disable-sync"
+                "--disable-setuid-sandbox",
+                "--remote-debugging-port=9222"
             ]
         }
     });
