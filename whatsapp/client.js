@@ -51,8 +51,7 @@ async function startBot() {
                 "--disable-sync"
             ]
         }
-    })
-};
+    });
 
     client.on("qr", async (qr) => {
         try {
