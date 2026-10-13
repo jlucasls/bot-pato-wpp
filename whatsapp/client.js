@@ -30,21 +30,12 @@ async function startBot() {
     client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
-            executablePath: "/usr/bin/chromium",
+            executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
             headless: true,
             args: [
                 "--no-sandbox",
                 "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-accelerated-2d-canvas",
-                "--no-first-run",
-                "--no-zygote",
-                "--single-process",
-                "--disable-gpu",
-                "--disable-software-rasterizer",
-                "--disable-extensions",
-                "--disable-setuid-sandbox",
-                "--remote-debugging-port=9222"
+                "--disable-dev-shm-usage"
             ]
         }
     });
