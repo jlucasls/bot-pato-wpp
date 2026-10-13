@@ -3,7 +3,6 @@ FROM node:18-slim
 RUN apt-get update && apt-get install -y \
     chromium \
     fonts-liberation \
-    libappindicator3-1 \
     libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \
@@ -14,7 +13,6 @@ RUN apt-get update && apt-get install -y \
     libexpat1 \
     libfontconfig1 \
     libgbm1 \
-    libgcc1 \
     libglib2.0-0 \
     libgtk-3-0 \
     libnspr4 \
@@ -28,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     libxcomposite1 \
     libxcursor1 \
     libxdamage1 \
-    libext6 \
+    libxext6 \
     libxfixes3 \
     libxi6 \
     libxrandr2 \
@@ -36,9 +34,6 @@ RUN apt-get update && apt-get install -y \
     libxss1 \
     libxtst6 \
     ca-certificates \
-    fonts-liberation \
-    libnss3 \
-    lsb-release \
     xdg-utils \
     wget \
     && rm -rf /var/lib/apt/lists/*
@@ -46,11 +41,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY package*.json ./
-
 RUN npm install
 
 COPY . .
 
 EXPOSE 3000
-
 CMD ["node", "server.js"]
