@@ -27,19 +27,23 @@ async function startBot() {
 
     logger.info("Iniciando cliente do WhatsApp...");
 
-    client = new Client({
-        authStrategy: new LocalAuth(),
-        puppeteer: {
-            executablePath: "/usr/bin/google-chrome",
-            headless: true,
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu"
-            ]
-        }
-    });
+    const client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        executablePath: "/usr/bin/chromium",
+        headless: true,
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process",
+            "--disable-gpu"
+        ]
+    }
+});
 
     client.on("qr", async (qr) => {
         try {
