@@ -32,4 +32,4 @@ As instruções para as entrevistas e desafios técnicos serão enviadas *priori
 `;
 }
 
-module.exports = {getFormsMessage};
+export {getFormsMessage};

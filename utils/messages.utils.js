@@ -1,9 +1,9 @@
-const { getBemVindo } = require("../messages/bemVindo.messages");
-const { getMenu } = require("../messages/menu.messages");
-const { getPatoNews } = require("../messages/patoNews.messages");
-const { getPatoTv } = require("../messages/patoTv.messages");
-const { getSair } = require("../messages/sair.messages");
-const { getSite } = require("../messages/site.messages");
+import { getBemVindo } from '../messages/bemVindo.messages.js';
+import { getMenu } from '../messages/menu.messages.js';
+import { getPatoNews } from '../messages/patoNews.messages.js';
+import { getPatoTv } from '../messages/patoTv.messages.js';
+import { getSair } from '../messages/sair.messages.js';
+import { getSite } from '../messages/site.messages.js';
 
 const MENSAGENS = {
     "oi": (userId) => getBemVindo(userId),
@@ -15,4 +15,4 @@ const MENSAGENS = {
     "sair": (userId) => getSair(userId),
 };
 
-module.exports = { MENSAGENS };
+export { MENSAGENS };

@@ -20,4 +20,4 @@ https://chat.whatsapp.com/KMe3tc8wW38DVmymqQvoKP
 `;
 }
 
-module.exports = {getPatoNews};
+export {getPatoNews};

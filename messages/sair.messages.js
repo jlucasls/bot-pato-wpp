@@ -15,4 +15,4 @@ _*Não seja um pato!*_
 `;
 }
 
-module.exports = { getSair };
+export { getSair };

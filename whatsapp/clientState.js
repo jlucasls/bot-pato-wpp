@@ -1,9 +1,12 @@
 let clientPronto = false;
+
 const isClientPronto = () => clientPronto;
+
 const setClientPronto = (estado) => {
     clientPronto = estado;
 };
-module.exports = {
+
+export {
     isClientPronto,
     setClientPronto
 };

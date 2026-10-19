@@ -18,4 +18,4 @@ Digite uma das opções acima para escolher.
 `;
 };
 
-module.exports = { getBemVindo };
+export { getBemVindo };

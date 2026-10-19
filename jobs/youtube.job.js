@@ -1,6 +1,9 @@
-const { google } = require("googleapis");
-const axios = require("axios");
-const logger = require("../utils/logger.utils");
+import { google } from "googleapis";
+import axios from "axios";
+import dotenv from "dotenv";
+import logger from "../utils/logger.utils.js";
+
+dotenv.config();
 
 const API_KEY = process.env.YOUTUBE_API_KEY || "";
 const CHANNEL_ID = process.env.CHANNEL_ID || "";
@@ -12,15 +15,13 @@ const youtube = google.youtube({
 });
 
 let videosConhecidos = new Set();
-
 const LIMITE_MEMORIA = 10;
 
-async function verifyNewVideos(){
+async function verifyNewVideos() {
     try {
         logger.info(`Verificando Youtube...`);
 
-        if(CHANNEL_ID){
-
+        if (CHANNEL_ID) {
             const response = await youtube.search.list({
                 channelId: CHANNEL_ID,
                 part: ['id', 'snippet'],
@@ -33,14 +34,14 @@ async function verifyNewVideos(){
             const firstExecution = videosConhecidos.size === 0;
             let temVideo = false;
 
-            for(const video of videos){
+            for (const video of videos) {
                 const videoId = video.id?.videoId;
-                if(!videoId) continue;
+                if (!videoId) continue;
 
-                if(!videosConhecidos.has(videoId)){
+                if (!videosConhecidos.has(videoId)) {
                     temVideo = true;
 
-                    if(!firstExecution){
+                    if (!firstExecution) {
                         logger.info(`Novo vídeo detectado! Enviado para o grupo...`);
 
                         await axios.post(ENDPOINT, {
@@ -54,7 +55,7 @@ async function verifyNewVideos(){
                 }
             }
 
-            if(videosConhecidos.size >= LIMITE_MEMORIA){
+            if (videosConhecidos.size >= LIMITE_MEMORIA) {
                 const arrayIds = Array.from(videosConhecidos);
                 videosConhecidos = new Set(arrayIds.slice(-5));
             }
@@ -62,7 +63,7 @@ async function verifyNewVideos(){
             if (!temVideo && !firstExecution) {
                 logger.info(`Nenhum vídeo novo encontrado.`);
             }
-        }else{
+        } else {
             throw new Error("ID do canal não pode ser nulo.");
         }
     } catch (err) {
@@ -70,4 +71,4 @@ async function verifyNewVideos(){
     }
 }
 
-module.exports = { verifyNewVideos };
+export { verifyNewVideos };

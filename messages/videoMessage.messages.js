@@ -14,4 +14,4 @@ function getVideoMessage(title, url) {
 `;
 }
 
-module.exports = { getVideoMessage };
+export { getVideoMessage };

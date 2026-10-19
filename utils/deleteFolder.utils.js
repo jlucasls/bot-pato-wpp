@@ -1,4 +1,4 @@
-const { rmSync } = require('node:fs');
+import { rmSync } from 'node:fs';
 
 function deleteFolder(folderPath) {
     try {
@@ -8,4 +8,4 @@ function deleteFolder(folderPath) {
     }
 }
 
-module.exports = { deleteFolder };
+export { deleteFolder };

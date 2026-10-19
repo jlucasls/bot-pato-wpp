@@ -1,23 +1,22 @@
-const { Client, LocalAuth } = require("whatsapp-web.js");
-const qrcode = require("qrcode");
-const { getBemVindo } = require("../messages/bemVindo.messages");
-const { MENSAGENS } = require("../utils/messages.utils");
-const logger = require("../utils/logger.utils");
-const { setClientPronto, isClientPronto } = require("./clientState");
-const dotenv = require("dotenv");
-const { deleteFolder } = require("../utils/deleteFolder.utils");
+import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
+import qrcode from 'qrcode';
+import pino from 'pino';
+import dotenv from 'dotenv';
+import { getBemVindo } from '../messages/bemVindo.messages.js';
+import { MENSAGENS } from '../utils/messages.utils.js';
+import logger from '../utils/logger.utils.js';
+import { setClientPronto, isClientPronto } from './clientState.js';
+import { deleteFolder } from '../utils/deleteFolder.utils.js';
+
 dotenv.config();
 
 let client = null;
 let currentQrCode = null;
 const usuariosAtivos = new Set();
 
-// por preocaução eu deixei pra ele nunca deixar mandar mensagem
-// já me ocorreu de ele mandar mensagem pra um monte de gente kkkkkkkk
-// entao pra tirar a limitação é só mudar no .env essa variavel e pronto.
 const lidsPermitidos = process.env.LIDS_PERMITIDOS ? process.env.LIDS_PERMITIDOS.split(";") : [];
 const blockMessages = process.env.BLOCK_MESSAGES || 'true';
-
 
 async function startBot() {
     if (client) {
@@ -27,110 +26,117 @@ async function startBot() {
 
     logger.info("Iniciando cliente do WhatsApp...");
 
-    client = new Client({
-        authStrategy: new LocalAuth(),
-        puppeteer: {
-            executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            headless: true,
-            args: [
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage"
-            ]
+    const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+
+    client = makeWASocket({
+        auth: state,
+        printQRInTerminal: false,
+        logger: pino({ level: 'silent' })
+    });
+
+    client.ev.on('creds.update', saveCreds);
+
+    client.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect, qr } = update;
+
+        if (qr) {
+            try {
+                currentQrCode = await qrcode.toDataURL(qr);
+                setClientPronto(false);
+                logger.success("QR Code gerado com sucesso.");
+            } catch (err) {
+                logger.error("Erro ao gerar QR Code.", err.message);
+            }
+        }
+
+        if (connection === 'close') {
+            const statusCode = (lastDisconnect?.error instanceof Boom)?.output?.statusCode || lastDisconnect?.error?.output?.statusCode;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+            logger.warn(`WhatsApp desconectado. Motivo: ${lastDisconnect?.error?.message || 'Desconhecido'}`);
+            
+            await stopBot();
+
+            if (shouldReconnect) {
+                logger.info("Tentando reconectar...");
+                await startBot();
+            }
+        } else if (connection === 'open') {
+            setClientPronto(true);
+            currentQrCode = null;
+            logger.success("WhatsApp conectado.");
         }
     });
 
-    client.on("qr", async (qr) => {
-        try {
-            currentQrCode = await qrcode.toDataURL(qr);
-            setClientPronto(false);
-            logger.success("QR Code gerado com sucesso.");
-        } catch (err) {
-            logger.error("Erro ao gerar QR Code.", err.message);
-        }
-    });
-
-    client.on("ready", () => {
-        setClientPronto(true);
-        currentQrCode = null;
-        logger.success("WhatsApp conectado.");
-    });
-
-    client.on("disconnected", async (reason) => {
-        logger.warn(`WhatsApp desconectado. Motivo: ${reason}`);
-        await stopBot();
-    });
-
-    client.on("message", async (message) => {
+    client.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
         if (!isClientPronto()) return;
 
+        const m = messages[0];
+        if (!m.message || m.key.fromMe) return;
+
+        const remoteJid = m.key.remoteJid;
+
+        if (remoteJid.endsWith('@g.us') || remoteJid.includes('@newsletter')) return;
+
+        const number = remoteJid.replace('@s.whatsapp.net', '');
+        const pushname = m.pushName || 'Usuário';
+
+        const metionNumber = number.replace('@lid', '');
+
         try {
-            if (message.fromMe) return;
-            if (message.from.includes("@g.us")) return;
-            if (message.from.includes("@newsletter")) return;
-
-            let user;
-            try {
-                user = await message.getContact();
-            } catch (err) {
-                logger.error("Erro na resolução de JID do contato. ERROR: ", err.message);
-                await message.reply("🦆 QUACK! Desculpa, estamos enfrentando turbulências em nossos serviços. Tente novamente mais tarde!");
-                return;
-            }
-
-            if(blockMessages === 'true'){
-                if (!lidsPermitidos.includes(user.number)) {
-                    logger.info(`Mensagem bloqueada de: ${user.pushname} (${user.number})`);
+            if (blockMessages === 'true') {
+                if (!lidsPermitidos.includes(number)) {
+                    logger.info(`Mensagem bloqueada de: ${pushname} (${number})`);
                     return;
                 }
             }
 
-            const msg = message.body.toLowerCase().trim();
+            const messageBody = m.message.conversation || 
+                                m.message.extendedTextMessage?.text || '';
+            const msg = messageBody.toLowerCase().trim();
+            
             let resposta;
 
-            if (!usuariosAtivos.has(user.number)) {
-                usuariosAtivos.add(user.number);
-                resposta = getBemVindo(user.id.user);
+            if (!usuariosAtivos.has(number)) {
+                usuariosAtivos.add(number);
+                resposta = getBemVindo(number);
             } else {
                 if (msg in MENSAGENS) {
                     resposta = MENSAGENS[msg];
-                    if (msg === "sair") usuariosAtivos.delete(user.number);
+                    if (msg === "sair") usuariosAtivos.delete(number);
                     if (typeof resposta === "function") {
-                        resposta = resposta(user.id.user);
+                        resposta = resposta(number);
                     }
                 } else {
                     resposta = "Não entendi 🤔. Digite *menu* para ver opções ou *sair* para encerrar a conversa.";
                 }
             }
 
-            await message.reply(resposta, undefined, {
-                mentions: [`${user.id.user}@c.us`],
-            });
+            await client.sendMessage(remoteJid, {
+                text: resposta,
+                mentions: [remoteJid],
+            }, { quoted: m });
+
         } catch (err) {
             logger.error("Erro interno no processamento/envio da mensagem. ERROR: ", err.message);
             try {
-                await message.reply("🦆 QUACK! Desculpa, estamos enfrentando turbulências em nossos serviços. Tente novamente mais tarde!");
+                await client.sendMessage(metionNumber, {
+                    text: "🦆 QUACK! Desculpa, estamos enfrentando turbulências em nossos serviços. Tente novamente mais tarde!"
+                }, { quoted: m });
             } catch (replyErr) {
                 logger.error("Falha crítica ao enviar mensagem de erro de fallback: ", replyErr.message);
             }
         }
     });
-
-    try {
-        await client.initialize();
-    } catch (err) {
-        logger.error("Erro na inicialização do Puppeteer: ", err.message);
-        await stopBot();
-    }
 }
 
 async function stopBot() {
     if (client) {
         try {
             logger.warn("Iniciando desligamento do Bot...");
-            logger.info("Encerrando navegador Puppeteer...");
-            await client.destroy();
-            logger.info("Navegador fechado com sucesso.");
+            client.end(undefined);
+            logger.info("Conexão encerrada com sucesso.");
         } catch (err) {
             logger.error("Erro ao encerrar a instância do cliente: ", err.message);
         } finally {
@@ -143,21 +149,17 @@ async function stopBot() {
 }
 
 async function logoutBot() {
-    if (client) {
-        try {
-            logger.info("Deslogando do WhatsApp Web...");
-            await client.logout();
-            deleteFolder("../.wwebjs_auth");
-            deleteFolder("../.wwebjs_cache");
-            logger.info("Sessão deslogada com sucesso.");
-        } catch (err) {
-            logger.error("Erro ao fazer logout no WhatsApp: ", err.message);
-        } finally {
-            await restartBot();
-        }
-    } else {
+    try {
+        logger.info("Deslogando do WhatsApp e limpando sessão...");
+        await stopBot();
+        deleteFolder("./auth_info_baileys");
+        logger.info("Sessão deslogada com sucesso.");
+    } catch (err) {
+        logger.error("Erro ao fazer logout no WhatsApp: ", err.message);
+    } finally {
         setClientPronto(false);
         currentQrCode = null;
+        await restartBot();
     }
 }
 
@@ -180,4 +182,4 @@ function getClient() {
     return client;
 }
 
-module.exports = { startBot, stopBot, logoutBot, restartBot, getBotStatus, getClient };
+export { startBot, stopBot, logoutBot, restartBot, getBotStatus, getClient };

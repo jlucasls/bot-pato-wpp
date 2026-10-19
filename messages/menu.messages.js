@@ -18,4 +18,4 @@ function getMenu(user) {
 💬 _Digite *sair* para encerrar._
 `;
 }
-module.exports = { getMenu };
+export { getMenu };

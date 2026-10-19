@@ -16,4 +16,4 @@ todos os vídeos da PatoTV.
 `;
 }
 
-module.exports = { getPatoTv };
+export { getPatoTv };

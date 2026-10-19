@@ -1,17 +1,22 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const logger = require("./utils/logger.utils");
-const messageRouter = require("./routes/messages.routes");
-const qrcode = require("qrcode");
-const botRouter = require("./routes/bot.routes");
-const path = require('path');
-const { startBot, getBotStatus } = require("./whatsapp/client");
-const { verifyNewVideos } = require("./jobs/youtube.job");
+import express from "express";
+import dotenv from "dotenv";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import logger from "./utils/logger.utils.js";
+import messageRouter from "./routes/messages.routes.js";
+import botRouter from "./routes/bot.routes.js";
+import { startBot, getBotStatus } from "./whatsapp/client.js";
+import { verifyNewVideos } from "./jobs/youtube.job.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
+
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
 const INTERVAL = 60 * 60 * 1000;
 const ENDPOINT = process.env.ENDPOINT || "https://localhost:3000/";
 
@@ -414,6 +419,6 @@ setInterval(verifyNewVideos, INTERVAL);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, async () => {
-    logger.info(`Server running in ${process.env.ENDPOINT}`);
+    logger.info(`Servidor rodando em: ${process.env.ENDPOINT}`);
     await startBot();
 });

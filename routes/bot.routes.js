@@ -1,8 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const logger = require("../utils/logger.utils");
-const { startBot, stopBot, logoutBot, restartBot, getBotStatus } = require("../whatsapp/client");
+import express from "express";
+import dotenv from "dotenv";
+import logger from "../utils/logger.utils.js";
+import { startBot, stopBot, logoutBot, restartBot, getBotStatus } from "../whatsapp/client.js";
 
+dotenv.config();
+
+const router = express.Router();
 const ACTION_PASSWORD = process.env.ACTION_PASSWORD || "";
 
 router.post('/start', async (req, res) => {
@@ -18,17 +21,16 @@ router.post('/start', async (req, res) => {
 
 router.post('/stop', async (req, res) => {
     try {
-
         const { password } = req.body;
 
-        if(!password){
+        if (!password) {
             logger.info("Foi detectada uma tentativa de desligamento do bot. Credencial não pode ser nula.");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
-        if(password != ACTION_PASSWORD) {
+        if (password !== ACTION_PASSWORD) {
             logger.info("Foi detectada uma tentativa de desligamento do bot. Credencial inválida");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
         await stopBot();
@@ -42,17 +44,16 @@ router.post('/stop', async (req, res) => {
 
 router.post('/logout', async (req, res) => {
     try {
-
         const { password } = req.body;
 
-        if(!password){
+        if (!password) {
             logger.info("Foi detectada uma tentativa de logout da sessão. Credencial não pode ser nula.");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
-        if(password != ACTION_PASSWORD) {
+        if (password !== ACTION_PASSWORD) {
             logger.info("Foi detectada uma tentativa de logout da sessão. Credencial inválida");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
         await logoutBot();
@@ -66,17 +67,16 @@ router.post('/logout', async (req, res) => {
 
 router.post('/restart', async (req, res) => {
     try {
-
         const { password } = req.body;
 
-        if(!password){
+        if (!password) {
             logger.info("Foi detectada uma tentativa de reinicialização do bot. Credencial não pode ser nula.");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
-        if(password != ACTION_PASSWORD) {
+        if (password !== ACTION_PASSWORD) {
             logger.info("Foi detectada uma tentativa de reinicialização do bot. Credencial inválida");
-            return res.status(200).json( { message: "Credencial inválida.", reset: true } );
+            return res.status(200).json({ message: "Credencial inválida.", reset: true });
         }
 
         logger.info("Reiniciando o bot...");
@@ -94,4 +94,4 @@ router.get('/status', (req, res) => {
     return res.status(200).json(status);
 });
 
-module.exports = router;
+export default router;

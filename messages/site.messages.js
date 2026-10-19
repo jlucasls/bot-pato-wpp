@@ -21,4 +21,4 @@ Descubra quantas faltas você ainda pode ter.
 `;
 }
 
-module.exports = { getSite };
+export { getSite };
